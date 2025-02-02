@@ -1,0 +1,12 @@
+How to run:
+_Instal the Eclipse Workspace and add it to the system Path
+
+
+In the file it will ask to enter the expression
+
+_Use the infix math expression
+The expression in here use the operator such as +,-,*,/,^
+The expression can also contain sin cos tan cot ln log
+and we can use the parenthesis and curly brackets to include that
+
+For this program we need to run again many times to run again since I do not use while loop

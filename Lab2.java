@@ -48,71 +48,91 @@ public class Lab2 {
 		}
 		
 		
-		
-		//Use the function to calculate 
 		private static double evaluateExpression(String express) {
-			Stack <Double> values = new Stack<> ();
-			Stack <String> op = new Stack<> ();
-			
-			StringTokenizer token = new StringTokenizer(express, "+-*/^(){}", true);
-			
-			while (token.hasMoreTokens()) {
-				String now = token.nextToken().trim();
-				if(now.isEmpty()) {
-					continue;
-				}
-				if(isNumeric(now)) {
-					values.push(Double.parseDouble(now));
-					
-				}
-			
-				else if(now.equals("(") || now.equals("{")) {
-					op.push(now);
-				}
-				else if (now.equals(")")) {
-					while(!op.isEmpty() && !op.peek().equals("(")) {
-						compute(values,op.pop());
-					}
-					if(!op.isEmpty() && op.peek().equals("(")) {
-						op.pop();
-					}else {
-						throw new IllegalArgumentException("Not match parantheses " + now);
-					}
-				}
-					
-					
-					else if(now.equals("}")) {
-						while(!op.isEmpty() && !op.peek().equals("{")) {
-							compute(values, op.pop());
-						}
-						if(!op.isEmpty() && op.peek().equals("{")) {
-							op.pop();
-						}else {
-						throw new IllegalArgumentException("Not match curly braces: " + now);
-					}
-				}
-					else if(current.containsKey(now)) {
-						while(!op.isEmpty() && current.get(op.peek()) >= current.get(now)
-								&& !op.peek().equals("(") && !op.peek().equals("{")) {
-							compute(values, op.pop());
-						}
-						op.push(now);
-					}
-					else {
-						throw new IllegalArgumentException("Invalid Input: " + now);
-					}
-			}
-			
-			while(!op.isEmpty()) {
-				compute(values,op.pop());
-			}
-				
-			return values.pop();
-				
-				
-			
-			
-			}
+		    Stack<Double> values = new Stack<>();
+		    Stack<String> op = new Stack<>();
+
+		    StringTokenizer token = new StringTokenizer(express, "+-*/^(){} sin cos tan cot ln log", true);
+		    boolean expectNegative = true; // If true, "-" should be treated as unary
+
+		    while (token.hasMoreTokens()) {
+		        String now = token.nextToken().trim();
+		        if (now.isEmpty()) {
+		            continue;
+		        }
+
+		        if (isNumeric(now)) {
+		            double num = Double.parseDouble(now);
+		            values.push(num);
+		            expectNegative = false; // After a number, expect an operator
+		        } 
+		        else if (now.equals("(") || now.equals("{")) {
+		            op.push(now);
+		            expectNegative = true; // A number might follow, which can be negative
+		        } 
+		        else if (now.equals(")")) {
+		            while (!op.isEmpty() && !op.peek().equals("(")) {
+		                compute(values, op.pop());
+		            }
+		            if (!op.isEmpty()) {
+		                op.pop(); // Remove "("
+		            }
+		        } 
+		        else if (now.equals("}")) {
+		            while (!op.isEmpty() && !op.peek().equals("{")) {
+		                compute(values, op.pop());
+		            }
+		            if (!op.isEmpty()) {
+		                op.pop(); // Remove "{"
+		            }
+		        } 
+		        else if (current.containsKey(now)) {
+		            if (now.equals("-") && expectNegative) {
+		                // Handle multiple unary minuses
+		                int minusCount = 1;
+		                while (token.hasMoreTokens()) {
+		                    String nextToken = token.nextToken().trim();
+		                    if (nextToken.equals("-")) {
+		                        minusCount++;
+		                    } else {
+		                        // Reconstruct the expression after counting minuses
+		                        if (isNumeric(nextToken)) {
+		                            double num = Double.parseDouble(nextToken);
+		                            if (minusCount % 2 == 0) {
+		                                values.push(num); // Even number of minuses: positive
+		                            } else {
+		                                values.push(-num); // Odd number of minuses: negative
+		                            }
+		                            expectNegative = false; // After a number, expect an operator
+		                        } else {
+		                            throw new IllegalArgumentException("Invalid expression: Unary minus must be followed by a number");
+		                        }
+		                        break;
+		                    }
+		                }
+		            } else {
+		                // Handle binary operators
+		                while (!op.isEmpty() && current.get(op.peek()) >= current.get(now)
+		                        && !op.peek().equals("(") && !op.peek().equals("{")) {
+		                    compute(values, op.pop());
+		                }
+		                op.push(now);
+		                expectNegative = true; // After an operator, expect a number
+		            }
+		        } 
+		        else {
+		            throw new IllegalArgumentException("Invalid Input: " + now);
+		        }
+		    }
+
+		    while (!op.isEmpty()) {
+		        compute(values, op.pop());
+		    }
+
+		    return values.pop();
+		}
+		
+
 		
 		
 		private static void compute(Stack<Double> values, String op) {
